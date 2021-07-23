@@ -1,24 +1,11 @@
 const graphql = require("graphql");
 const Book = require("../models/book");
 const Author = require("../models/author");
-
 const { GraphQLObjectType, GraphQLString, GraphQLSchema, GraphQLInt, GraphQLList, GraphQLID } = graphql;
 
 
-const books = [
-    {name: "Name of the Wind", genre: "Fantasy", id:"1", authorId: "1"},
-    {name: "The Final Empire", genre: "Fantasy", id:"2", authorId: "2"},
-    {name: "The Long Earth", genre: "Sci-Fi", id:"3", authorId: "3"},
-    {name: "The Hero of Ages", genre: "Fantasy", id: "4", authorId: "2"},
-    {name: "The Colour of Magic", genre: "Fantasy", id: "5", authorId: "3"},
-    {name: "The Light Fantastic", genre: "Fantasy", id: "6", authorId: "3"}
-];
 
-const authors = [
-    {name: "Patrick Rothfuss", age: 44, id: "1"},
-    {name: "Brandon Sanderson", age: 42, id: "2"},
-    {name: "Terry Pratchett", age: 66, id: "3"}
-];
+
 
 const BookType = new GraphQLObjectType({    // NOTA: "BookType" es un type object el cual define cómo es el objeto Book. //
     name: "Book",
@@ -26,10 +13,11 @@ const BookType = new GraphQLObjectType({    // NOTA: "BookType" es un type objec
         id: { type: GraphQLString },
         name: { type: GraphQLString },
         genre: { type: GraphQLString },
-        author: {
+        author: {   // NOtA: acá estoy definiendo la relación que tiene el libro con el autor. Más especificamente, obteniendo el autor que escribió este libro. //
             type: AuthorType,
             resolve(parent, args){
-                return authors.find(author => author.id === parent.authorId)
+                // return authors.find(author => author.id === parent.authorId)
+                return Author.findById(parent.authorId);
             }
         }
     })
@@ -41,43 +29,43 @@ const AuthorType = new GraphQLObjectType({  // NOTA: "AuthorType" es un type obj
         id: { type: GraphQLString },
         name: { type : GraphQLString},
         age: { type : GraphQLInt},
-        books: {
+        books: {    // NOtA: acá estoy definiendo la relación que tiene el autor con los libros. Más especificamente, obteniendo TODOS los libros que escribió este autor. //
             type: new GraphQLList(BookType),
             resolve(parent, args) {
-                return books.filter(book => book.authorId === parent.id);
+                return Book.find({authorId: parent.id});
             }
         }
     })
 });
 
 
-const RootQuery = new GraphQLObjectType({   // NOTA: este es un "Root Type" que es el objeto que engloba a los object type de arriba y a su vez les asigna una función "resolve" que permite hacer la búsqueda de un cierto dato según el parámetro que se ingresa desde el frontend. //
+const RootQuery = new GraphQLObjectType({   // NOTA: este es un objeto que nos permite englobar las consultas para que nos devuelva UN book. UN author, TODOS los books o TODOS los authors.
     name: "RootQueryType",
     fields: {
         book: { // Con esta query se devuelve todo o parte de UN BookType. Qué BookType nos va a devolver depende del argumento enviado desde el front al hacer {book(id: ciertoNumero)} donde "ciertoNumero" es el campo id del BookType. //
             type: BookType,
             args: { id: { type: GraphQLString } },
             resolve(parent, args){
-                return books.find(element => element.id === args.id); // "args.id" va a contener el valor del id que se mande desde el frontend. // 
+                return Book.findById(args.id);  // "args.id" va a contener el valor del id que se mande desde el frontend. // 
             }
         },
-        author: {   // Con esta query se devuelve todo o parte de UN AuthoType. Qué AuthorType nos va a devolver depende del argumento enviado desde el front al hacer {author(id: ciertoNumero)} donde "ciertoNumero" es el campo id del AuthorType. //
+        author: {   // Con esta query se devuelve todo o parte de UN AuthorType. Qué AuthorType nos va a devolver depende del argumento enviado desde el front al hacer {author(id: ciertoNumero)} donde "ciertoNumero" es el campo id del AuthorType. //
             type: AuthorType,
             args: { id: { type: GraphQLString } },
             resolve(parent, args){
-                return authors.find(element => element.id === args.id); // "args.id" va a contener el valor del id que se mande desde el frontend. // 
+                return Author.findById(args.id);    // "args.id" va a contener el valor del id que se mande desde el frontend. // 
             }
         },
         books: { // Con esta query se devuelven TODOS los "books" que hayan dentro de ese objeto.
             type: new GraphQLList(BookType),
             resolve(parent, args) {
-                return books;
+                return Book.find({});
             }
         },
         authors: {  // Con esta query se devuelven TODOS los "authors" que hayan dentro de ese objeto.
             type: new GraphQLList(AuthorType),
             resolve(parent, args) {
-                return authors;
+                return Author.find({});
             }
         }
 
@@ -89,7 +77,7 @@ const RootQuery = new GraphQLObjectType({   // NOTA: este es un "Root Type" que 
 const Mutation = new GraphQLObjectType({
     name: "Mutation",
     fields: {
-        addAuthor: {
+        addAuthor: {    // NOTA: addAuthor sirve para agregar un autor a MongoDB Atlas a través de mongoose. //
             type: AuthorType,
             args: {
                 name: {type: GraphQLString},
@@ -104,7 +92,7 @@ const Mutation = new GraphQLObjectType({
             }
         },
 
-        addBook: {
+        addBook: {      // NOTA: addBook sirve para agregar un libro a MongoDB Atlas a través de mongoose. //
             type: BookType,
             args: {
                 name: {type: GraphQLString},
