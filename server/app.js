@@ -5,9 +5,10 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-mongoose.connect("mongodb+srv://javo:test123@author-book.llpfd.mongodb.net/Author-Book?retryWrites=true&w=majority", {useNewUrlParser: true, useUnifiedTopology: true});    // NOTA: se abre un pool con 5 conexiones por default
-mongoose.connection
-    .once("open", () => {   // NOTA: esta función sólo se ejecuta una vez y es apenas se levanta el servidor al hacer "nodemon app" en la consola. //
+mongoose.connect("mongodb+srv://javo:test123@author-book.llpfd.mongodb.net/Author-Book?retryWrites=true&w=majority", {useNewUrlParser: true, useUnifiedTopology: true})    // NOTA: nos conectamos a la instancia de MongoDB. //
+    .catch(error => console.log(`Error when trying to connect to the DB - Error returned is: ${error}`));
+mongoose.connection     // NOTA: mongoose.connection accede a la conexión creada en la línea de arriba. //
+    .once("open", () => {   // NOTA: esta función sólo se ejecuta una vez y es apenas se levanta el servidor al hacer "nodemon app" en la consola (y después de haber pasado por la línea de arriba con el connect). //
         console.log("Connected to database");
 
         app.use("/graphql", graphqlHTTP({   // NOTA: esta línea junto con las dos líneas siguientes levanta el servicio que permite ejecutar queries en GraphQL. //
