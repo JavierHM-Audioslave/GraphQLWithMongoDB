@@ -1,7 +1,7 @@
 const graphql = require("graphql");
 const Book = require("../models/book");
 const Author = require("../models/author");
-const { GraphQLObjectType, GraphQLString, GraphQLSchema, GraphQLInt, GraphQLList, GraphQLID } = graphql;
+const { GraphQLObjectType, GraphQLString, GraphQLSchema, GraphQLInt, GraphQLList, GraphQLID, GraphQLNonNull } = graphql;
 
 
 
@@ -74,14 +74,14 @@ const RootQuery = new GraphQLObjectType({   // NOTA: este es un objeto que nos p
 
 
 
-const Mutation = new GraphQLObjectType({
+const Mutation = new GraphQLObjectType({    // NOTA: este es un objeto que nos permite englobar las operaciones de creación en la BD. //
     name: "Mutation",
     fields: {
-        addAuthor: {    // NOTA: addAuthor sirve para agregar un autor a MongoDB Atlas a través de mongoose. //
+        addAuthor: {    // NOTA: addAuthor sirve para agregar un autor a MongoDB a través de mongoose. //
             type: AuthorType,
             args: {
-                name: {type: GraphQLString},
-                age: {type: GraphQLInt}
+                name: {type: new GraphQLNonNull(GraphQLString)},    // NOTA: con "GraphQLNonNull" lo que hago es declarar que este campo siempre tiene que tener un valor y así prevenir que un "author" se grabe en la BD sin este campo. //
+                age: {type: new GraphQLNonNull(GraphQLInt)}     // NOTA: ídem nota de arriba. //
             },
             resolve(parent, args){
                 let author = new Author({
@@ -92,12 +92,12 @@ const Mutation = new GraphQLObjectType({
             }
         },
 
-        addBook: {      // NOTA: addBook sirve para agregar un libro a MongoDB Atlas a través de mongoose. //
+        addBook: {      // NOTA: addBook sirve para agregar un libro a MongoDB a través de mongoose. //
             type: BookType,
             args: {
-                name: {type: GraphQLString},
-                genre: {type: GraphQLString},
-                authorId: {type: GraphQLString}
+                name: {type: new GraphQLNonNull(GraphQLString)},    // NOTA: con "GraphQLNonNull" lo que hago es declarar que este campo siempre tiene que tener un valor y así prevenir que un "book" se grabe en la BD sin este campo. //
+                genre: {type: new GraphQLNonNull(GraphQLString)},   // NOTA: ídem nota de arriba. //
+                authorId: {type: new GraphQLNonNull(GraphQLString)} // NOTA: ídem nota de arriba. //
             },
             resolve(parent, args){
                 let book = new Book({

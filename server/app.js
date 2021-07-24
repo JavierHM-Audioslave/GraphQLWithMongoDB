@@ -10,9 +10,9 @@ mongoose.connection
     .once("open", () => {
         console.log("Connected to database");
 
-        app.use("/graphql", graphqlHTTP({
-            schema: schema,
-            graphiql: true
+        app.use("/graphql", graphqlHTTP({   // NOTA: esta línea junto con las dos líneas siguientes levanta el servicio que permite ejecutar queries en GraphQL. //
+            schema: schema, // NOTA: esquema que permite ejecutar todas las queries que estén implementadas en el archivo "schema.js".
+            graphiql: true  // NOTA: esta línea permite que las queries sean también ejecutadas a través de la interfaz gráfica del navegador. //
         }));
 
         app.listen(4000, () => {
